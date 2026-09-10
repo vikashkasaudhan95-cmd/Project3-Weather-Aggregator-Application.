@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weather Aggregator - CodTech Internship Task 3</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      color: #334155;
+    }
+
+    .weather-card {
+      background: #ffffff;
+      width: 100%;
+      max-width: 650px;
+      padding: 32px;
+      border-radius: 16px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 24px;
+      border-bottom: 2px solid #f1f5f9;
+      padding-bottom: 16px;
+    }
+
+    .header h2 {
+      color: #0f172a;
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .header .badge {
+      display: inline-block;
+      background-color: #e0f2fe;
+      color: #0369a1;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+
+    /* Search Controls */
+    .search-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 12px 16px;
+      font-size: 15px;
+      border-radius: 8px;
+      border: 1.5px solid #e2e8f0;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    input[type="text"]:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    button {
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .btn-search {
+      background-color: #2563eb;
+      color: #ffffff;
+    }
+
+    .btn-search:hover {
+      background-color: #1d4ed8;
+    }
+
+    .btn-unit {
+      background-color: #f1f5f9;
+      color: #475569;
+      border: 1.5px solid #e2e8f0;
+    }
+
+    .btn-unit:hover {
+      background-color: #e2e8f0;
+    }
+
+    /* Weather Visualizations */
+    .current-card {
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      color: #ffffff;
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .current-card h3 {
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .current-temp {
+      font-size: 48px;
+      font-weight: 800;
+      margin: 10px 0;
+    }
+
+    .weather-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+      background: rgba(255, 255, 255, 0.15);
+      padding: 12px;
+      border-radius: 8px;
+    }
+
+    .grid-item span {
+      display: block;
+      font-size: 11px;
+      text-transform: uppercase;
+      opacity: 0.8;
+    }
+
+    .grid-item strong {
+      font-size: 15px;
+    }
+
+    /* Forecast Table */
+    .forecast-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .forecast-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+    }
+
+    .forecast-day {
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 12px 8px;
+      text-align: center;
+    }
+
+    .forecast-day .day-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: #64748b;
+      margin-bottom: 6px;
+    }
+
+    .forecast-day .day-temp {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .loading-msg {
+      text-align: center;
+      padding: 20px;
+      color: #64748b;
+    }
+
+    .footer {
+      margin-top: 24px;
+      text-align: center;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="weather-card">
+    <div class="header">
+      <h2>Weather Aggregator Dashboard</h2>
+      <span class="badge">CodTech Software Dev Internship - Task 3</span>
+    </div>
+
+    <!-- Controls -->
+    <div class="search-bar">
+      <input type="text" id="cityInput" placeholder="Enter city name..." value="London">
+      <button class="btn-search" onclick="fetchWeatherData()">Search</button>
+      <button class="btn-unit" id="unitBtn" onclick="toggleUnit()">°C</button>
+    </div>
+
+    <!-- Weather Content -->
+    <div id="weatherContent">
+      <div class="loading-msg">Fetching live weather metrics...</div>
+    </div>
+
+    <div class="footer">
+      Powered by Open-Meteo API | Designed by Software Development Intern
+    </div>
+  </div>
+
+  <script>
+    let currentUnit = localStorage.getItem('codtech_unit') || 'celsius';
+    let lastCity = localStorage.getItem('codtech_last_city') || 'London';
+
+    document.getElementById('cityInput').value = lastCity;
+    document.getElementById('unitBtn').innerText = currentUnit === 'celsius' ? '°C' : '°F';
+
+    function toggleUnit() {
+      currentUnit = currentUnit === 'celsius' ? 'fahrenheit' : 'celsius';
+      localStorage.setItem('codtech_unit', currentUnit);
+      document.getElementById('unitBtn').innerText = currentUnit === 'celsius' ? '°C' : '°F';
+      fetchWeatherData();
+    }
+
+    async function fetchWeatherData() {
+      const city = document.getElementById('cityInput').value.trim();
+      const content = document.getElementById('weatherContent');
+
+      if (!city) return;
+
+      content.innerHTML = `<div class="loading-msg">Searching location & updating weather...</div>`;
+      localStorage.setItem('codtech_last_city', city);
+
+      try {
+        // Step 1: Geocoding API to obtain coordinates
+        const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en&format=json`);
+        const geoData = await geoRes.json();
+
+        if (!geoData.results || geoData.results.length === 0) {
+          content.innerHTML = `<div class="loading-msg" style="color: #dc2626;">Location not found. Please try another query.</div>`;
+          return;
+        }
+
+        const { latitude, longitude, name, country } = geoData.results[0];
+
+        // Step 2: Fetch weather metrics
+        const tempUnitParam = currentUnit === 'fahrenheit' ? '&temperature_unit=fahrenheit' : '';
+        const windUnitParam = currentUnit === 'fahrenheit' ? '&wind_speed_unit=mph' : '';
+
+        const weatherRes = await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,surface_pressure&daily=temperature_2m_max,temperature_2m_min&timezone=auto${tempUnitParam}${windUnitParam}`
+        );
+        const weatherData = await weatherRes.json();
+
+        renderWeather(name, country, weatherData);
+
+      } catch (error) {
+        content.innerHTML = `<div class="loading-msg" style="color: #dc2626;">Error loading data. Please check network connection.</div>`;
+      }
+    }
+
+    function renderWeather(city, country, data) {
+      const current = data.current;
+      const daily = data.daily;
+      const unitSymbol = currentUnit === 'celsius' ? '°C' : '°F';
+      const speedSymbol = currentUnit === 'celsius' ? 'km/h' : 'mph';
+
+      let forecastHTML = '';
+      for (let i = 0; i < 5; i++) {
+        const date = new Date(daily.time[i]).toLocaleDateString('en-US', { weekday: 'short' });
+        forecastHTML += `
+          <div class="forecast-day">
+            <div class="day-name">${date}</div>
+            <div class="day-temp">${Math.round(daily.temperature_2m_max[i])}${unitSymbol}</div>
+          </div>
+        `;
+      }
+
+      document.getElementById('weatherContent').innerHTML = `
+        <div class="current-card">
+          <h3>${city}, ${country}</h3>
+          <div class="current-temp">${Math.round(current.temperature_2m)}${unitSymbol}</div>
+          <div class="weather-grid">
+            <div class="grid-item">
+              <span>Humidity</span>
+              <strong>${current.relative_humidity_2m}%</strong>
+            </div>
+            <div class="grid-item">
+              <span>Wind Speed</span>
+              <strong>${current.wind_speed_10m} ${speedSymbol}</strong>
+            </div>
+            <div class="grid-item">
+              <span>Pressure</span>
+              <strong>${Math.round(current.surface_pressure)} hPa</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="forecast-title">5-Day Forecast</div>
+        <div class="forecast-grid">${forecastHTML}</div>
+      `;
+    }
+
+    // Trigger initial search
+    fetchWeatherData();
+  </script>
+</body>
+</html>
